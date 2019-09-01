@@ -1,14 +1,17 @@
 package com.friend.sql_mana.service;
 
+import com.alibaba.druid.util.JdbcUtils;
 import com.friend.sql_mana.model.JdbcResultResp;
 import com.friend.sql_mana.model.SchemaReq;
 import com.friend.sql_mana.model.SchemaResp;
 import com.friend.sql_mana.model.SqlVerifyReq;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.*;
 
 @Service
@@ -19,6 +22,17 @@ public class SchemaService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    public SchemaReq initSchemaReq = new SchemaReq();
+    @Bean
+    private void initDataBase() {
+        initSchemaReq.setAddress("127.0.0.1");
+        initSchemaReq.setPassword("123");
+        initSchemaReq.setPort(3306);
+        initSchemaReq.setSchema("febs_security");
+        initSchemaReq.setUsername("root");
+        dataSourceManager.initDataSource(initSchemaReq);
+    }
 
 
     public void addSchema(SchemaReq schemaReq) {
@@ -64,12 +78,20 @@ public class SchemaService {
     }
 
 
-    public JdbcResultResp executeSql(SqlVerifyReq sqlVerifyReq) {
+    public JdbcResultResp executeDqlSql(SqlVerifyReq sqlVerifyReq) {
         Map<String, DataSource> dataSourceMap = dataSourceManager.getDataSourceMap();
         DataSource dataSource = dataSourceMap.get(sqlVerifyReq.getSchema());
 
         //todo 对敏感字段做脱敏查询
         JdbcResultResp jdbcResultResp = jdbcTemplate.executeSql(dataSource, sqlVerifyReq.getSql());
         return jdbcResultResp;
+    }
+
+    public void executeDmlSql(SqlVerifyReq sqlVerifyReq) throws SQLException {
+        Map<String, DataSource> dataSourceMap = dataSourceManager.getDataSourceMap();
+        DataSource dataSource = dataSourceMap.get(sqlVerifyReq.getSchema());
+
+        JdbcUtils.execute(dataSource, sqlVerifyReq.getSql());
+
     }
 }

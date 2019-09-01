@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +42,14 @@ public class SchemaController {
         return schemaResps;
     }
 
-    @PostMapping(value = "/schemas/tables/sql::execute")
-    public JdbcResultResp executeSql(@RequestBody @Valid SqlVerifyReq sqlVerifyReq, BindingResult result) {
-        return schemaService.executeSql(sqlVerifyReq);
+    @PostMapping(value = "/schemas/tables/sql::executeDql")
+    public JdbcResultResp executeDql(@RequestBody @Valid SqlVerifyReq sqlVerifyReq, BindingResult result) {
+        return schemaService.executeDqlSql(sqlVerifyReq);
+    }
+
+    @PostMapping(value = "/schemas/tables/sql::executeDml")
+    public void executeDml(@RequestBody @Valid SqlVerifyReq sqlVerifyReq, BindingResult result) throws SQLException {
+        schemaService.executeDmlSql(sqlVerifyReq);
     }
 
     @ResponseBody
